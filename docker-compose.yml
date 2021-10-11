@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  api:
+    build:
+      context: ./src/api
+      dockerfile: Dockerfile
+    container_name: eaatsomething-api
+    volumes:
+      - ./src/:/srv/src/
+    entrypoint: /srv/src/api/entrypoint.sh
