@@ -6,6 +6,8 @@ services:
       context: ./src/api
       dockerfile: Dockerfile
     container_name: eaatsomething-api
+    ports:
+      - 3000:3000
     volumes:
       - ./src/:/srv/src/
     entrypoint: /srv/src/api/entrypoint.sh

@@ -2,4 +2,6 @@
 
 find /srv/src
 
+npm install
+
 npm run serve
