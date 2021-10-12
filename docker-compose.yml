@@ -11,3 +11,14 @@ services:
     volumes:
       - ./src/:/srv/src/
     entrypoint: /srv/src/api/entrypoint.sh
+
+  ui:
+    build:
+      context: ./src/ui
+      dockerfile: Dockerfile
+    container_name: eaatsomething-ui
+    ports:
+      - 5000:5000
+    volumes:
+      - ./src/:/srv/src/
+    entrypoint: /srv/src/ui/entrypoint.sh
