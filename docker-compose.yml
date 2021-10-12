@@ -5,9 +5,9 @@ services:
     build:
       context: ./src/api
       dockerfile: Dockerfile
-    container_name: eaatsomething-api
+    container_name: eatsomething-api
     ports:
-      - 3000:3000
+      - 5000:5000
     volumes:
       - ./src/:/srv/src/
     entrypoint: /srv/src/api/entrypoint.sh
@@ -16,9 +16,9 @@ services:
     build:
       context: ./src/ui
       dockerfile: Dockerfile
-    container_name: eaatsomething-ui
+    container_name: eatsomething-ui
     ports:
-      - 5000:5000
+      - 3000:3000
     volumes:
       - ./src/:/srv/src/
     entrypoint: /srv/src/ui/entrypoint.sh

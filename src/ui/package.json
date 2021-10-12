@@ -2,9 +2,9 @@
   "name": "eatsomething-ui",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "index.tsx",
   "scripts": {
-    "serve": "webpack serve --mode development",
+    "serve": "webpack serve --mode development --port 3000 --host 0.0.0.0",
     "build": "webpack --mode production"
   },
   "keywords": [],
@@ -27,7 +27,7 @@
     "style-loader": "^2.0.0",
     "webpack": "^5.27.0",
     "webpack-cli": "^4.5.0",
-    "webpack-dev-server": "^3.11.2",
+    "webpack-dev-server": "latest",
     "ts-loader": "latest",
     "typescript": "latest"
   }
