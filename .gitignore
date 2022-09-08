@@ -1,3 +1,6 @@
 .idea/**
-src/**/node_modules/**
-src/**/package-lock.json
+data/
+**/.DS_Store
+src/api/target
+**/.env
+**/node_modules

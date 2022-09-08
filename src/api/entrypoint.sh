@@ -1,4 +1,4 @@
 #!/bin/env bash
 
-npm install
-npm run serve
+. /root/.cargo/env
+cargo watch -x run

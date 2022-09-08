@@ -1,0 +1,21 @@
+we need to have
+
+users
+  name / email / password / not much else
+
+restaurants
+  name / address / url / other
+
+restaurant ratings
+  user
+  restaurant
+  type
+  rating
+
+recipe
+  for now probably just name, url, maybe text dump
+
+recipe ratings
+  user
+  recipe
+  rating

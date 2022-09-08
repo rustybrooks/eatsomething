@@ -2,16 +2,17 @@ FROM ubuntu:20.04
 USER root
 
 WORKDIR /srv/src/api
-ENV NODE_ENV=development
 
 RUN apt-get -y update \
- && DEBIAN_FRONTEND=noninteractive apt-get -yq install curl apt-utils \
- && curl -sL https://deb.nodesource.com/setup_14.x | bash - \
- && apt-get install -y nodejs
+ && DEBIAN_FRONTEND=noninteractive apt-get -yq install curl apt-utils gcc g++
 
-RUN echo sup
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+ && . /root/.cargo/env \
+ && cargo install cargo-watch
 
-COPY . /srv/src/api
+COPY src /srv/src/api/src
+COPY Cargo.toml entrypoint.sh /srv/src/api/
 
-# RUN cd /srv/src/api && npm install
+RUN . /root/.cargo/env && cargo build
 
+ENTRYPOINT /srv/src/api/entrypoint.sh

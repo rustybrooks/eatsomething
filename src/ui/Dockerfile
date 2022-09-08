@@ -9,6 +9,9 @@ RUN apt-get -y update \
  && curl -sL https://deb.nodesource.com/setup_14.x | bash - \
  && apt-get install -y nodejs
 
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+
 COPY . /srv/src/ui
 
 
