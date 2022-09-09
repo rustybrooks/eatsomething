@@ -12,10 +12,11 @@ services:
       - ./src/api/src:/srv/src/api/src
       - ./src/api/Cargo.toml:/srv/src/api/Cargo.toml
     environment:
-      - PG_USER=wombat
-      - PG_PASS=1wombat2
-      - PG_HOST=postgres
-      - PG_PORT=5432
+      #      - PG_USER=wombat
+      #      - PG_PASS=1wombat2
+      #      - PG_HOST=postgres
+      #      - PG_PORT=5432
+      - DATABASE_URL=postgres://wombat:1wombat2@postgres:5432/eatsomething
     entrypoint: /srv/src/api/entrypoint.sh
     depends_on:
       - postgres

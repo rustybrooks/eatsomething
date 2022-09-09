@@ -4,7 +4,7 @@ USER root
 WORKDIR /srv/src/api
 
 RUN apt-get -y update \
- && DEBIAN_FRONTEND=noninteractive apt-get -yq install curl apt-utils gcc g++
+ && DEBIAN_FRONTEND=noninteractive apt-get -yq install curl apt-utils gcc g++ libpq5 libpq-dev
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
  && . /root/.cargo/env \
