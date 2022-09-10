@@ -4,7 +4,7 @@ use warp::{self, Filter};
 use crate::data_access::DBAccessManager;
 use crate::errors::{AppError, ErrorType};
 use crate::handlers;
-use crate::models::CreateUser;
+use crate::models::{CreateUser, UserLogin};
 use crate::pool::OurPool;
 
 fn with_db(
@@ -35,15 +35,31 @@ fn with_json_body<T: DeserializeOwned + Send>(
 fn user_signup(
     pool: OurPool,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path("user")
+    warp::path("signup")
         .and(warp::post())
         .and(with_db(pool))
-        .and(with_json_body::<CreateUser>()) // Try to deserialize JSON body to AddBook
+        .and(with_json_body::<CreateUser>())
         .and_then(handlers::user_signup)
+}
+
+fn user_login(
+    pool: OurPool,
+) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+    warp::path("login")
+        .and(warp::post())
+        .and(with_db(pool))
+        .and(with_json_body::<UserLogin>())
+        .and_then(handlers::user_login)
+}
+
+pub fn user_routes(
+    pool: OurPool,
+) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+    warp::path("user").and(user_signup(pool.clone()).or(user_login(pool.clone())))
 }
 
 pub fn routes(
     pool: OurPool,
 ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    user_signup(pool)
+    warp::path("api").and(user_routes(pool.clone()).or(user_routes(pool.clone())))
 }

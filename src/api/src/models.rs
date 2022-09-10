@@ -24,3 +24,9 @@ pub struct CreateUser {
     pub is_admin: Option<bool>,
     pub api_key: Option<String>,
 }
+
+#[derive(Debug, Clone, Queryable, Deserialize, Serialize)]
+pub struct UserLogin {
+    pub username: String,
+    pub password: String,
+}

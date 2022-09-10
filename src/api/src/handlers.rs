@@ -7,7 +7,7 @@ use pbkdf2::{
 
 use crate::data_access::DBAccessManager;
 use crate::errors::AppError;
-use crate::models::CreateUser;
+use crate::models::{CreateUser, UserLogin};
 use rand::Rng;
 
 fn respond<T: Serialize>(
@@ -97,4 +97,11 @@ pub async fn user_signup(
     });
 
     respond(created_user, warp::http::StatusCode::OK)
+}
+
+pub async fn user_login(
+    mut db: DBAccessManager,
+    user: UserLogin,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    respond(Ok(user), warp::http::StatusCode::OK)
 }
