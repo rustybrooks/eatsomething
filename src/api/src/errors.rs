@@ -37,7 +37,7 @@ impl AppError {
 
     pub fn from_diesel_err(err: diesel::result::Error, context: &str) -> AppError {
         AppError::new(
-            format!("{}: {}", context, err).as_str(),
+            format!("{}: {}", context, err.to_string()).as_str(),
             match err {
                 diesel::result::Error::DatabaseError(db_err, _) => match db_err {
                     diesel::result::DatabaseErrorKind::UniqueViolation => ErrorType::BadRequest,

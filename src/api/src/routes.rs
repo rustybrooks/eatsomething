@@ -4,7 +4,7 @@ use warp::{self, Filter};
 use crate::data_access::DBAccessManager;
 use crate::errors::{AppError, ErrorType};
 use crate::handlers;
-use crate::models::{CreateUser, UserLogin};
+use crate::handlers::{UserLoginReq, UserSignupReq};
 use crate::pool::OurPool;
 
 fn with_db(
@@ -38,7 +38,7 @@ fn user_signup(
     warp::path("signup")
         .and(warp::post())
         .and(with_db(pool))
-        .and(with_json_body::<CreateUser>())
+        .and(with_json_body::<UserSignupReq>())
         .and_then(handlers::user_signup)
 }
 
@@ -48,7 +48,7 @@ fn user_login(
     warp::path("login")
         .and(warp::post())
         .and(with_db(pool))
-        .and(with_json_body::<UserLogin>())
+        .and(with_json_body::<UserLoginReq>())
         .and_then(handlers::user_login)
 }
 

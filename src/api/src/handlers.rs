@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde_derive::{Deserialize, Serialize};
 
 use pbkdf2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
@@ -6,11 +6,11 @@ use pbkdf2::{
 };
 
 use crate::data_access::DBAccessManager;
-use crate::errors::AppError;
-use crate::models::{CreateUser, UserLogin};
+use crate::errors::{AppError, ErrorType};
+use crate::models::CreateUser;
 use rand::Rng;
 
-fn respond<T: Serialize>(
+fn respond<T: serde::Serialize>(
     result: Result<T, AppError>,
     status: warp::http::StatusCode,
 ) -> Result<impl warp::Reply, warp::Rejection> {
@@ -26,52 +26,10 @@ fn respond<T: Serialize>(
     }
 }
 
-/*
- async signup({ username, email, password, password2 }: { username: string; email: string; password: string; password2: string }) {
-   const errors: { [id: string]: string } = {};
-   if (username.length < 4) {
-     errors.username = 'Username must be at least 4 characters';
-   }
-
-   const re = /^[a-z,A-Z,0-9,\-,_]+$/;
-   if (!username.match(re)) {
-     errors.username = 'Username must be composed of only letters, numbers, _ and -';
-   }
-
-   if (password !== password2) {
-     errors.password2 = 'Passwords do not match';
-   }
-
-   if (password.length < 8) {
-     errors.password = 'Password must be at least 8 characters';
-   }
-
-   if (!email) {
-     errors.email = 'Email required';
-   }
-
-   if (Object.keys(errors).length) {
-     throw new HttpBadRequest(errors);
-   }
-
-   try {
-     await queries.addUser({ username, password, email });
-     return queries.generateToken(username);
-   } catch (e) {
-     throw new HttpBadRequest({ username: 'Failed to create user' });
-   }
- }
-*/
-
 async fn encrypt_password() -> Result<String, pbkdf2::password_hash::Error> {
     let password = b"hunter42"; // Bad password; don't actually use!
     let salt = SaltString::generate(&mut OsRng);
-
-    // Hash password to PHC string ($pbkdf2-sha256$...)
     Ok(Pbkdf2.hash_password(password, &salt)?.to_string())
-
-    // // Verify password against PHC string
-    // assert!(Pbkdf2.verify_password(password, &parsed_hash).is_ok());
 }
 
 async fn check_password(
@@ -86,22 +44,73 @@ async fn check_password(
 
 pub async fn user_signup(
     mut db: DBAccessManager,
-    user: CreateUser,
+    signup: UserSignupReq,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let mut rng = rand::thread_rng();
-    let api_key: i128 = rng.gen();
-    let created_user = db.create_user(CreateUser {
-        api_key: Some(format!("{api_key:x}")),
+
+    if signup.username.len() <= 4 {
+        return Err(warp::reject::custom(AppError::new(
+            "Username must be at least 4 characters",
+            ErrorType::BadRequest,
+        )));
+    }
+
+    if signup.password != signup.password2 {
+        return Err(warp::reject::custom(AppError::new(
+            "Passwords do not match",
+            ErrorType::BadRequest,
+        )));
+    }
+
+    if signup.password.len() < 8 {
+        return Err(warp::reject::custom(AppError::new(
+            "Password must be at least 8 characters",
+            ErrorType::BadRequest,
+        )));
+    }
+
+    if signup.email.is_empty() {
+        return Err(warp::reject::custom(AppError::new(
+            "Email required",
+            ErrorType::BadRequest,
+        )));
+    }
+
+    let user = CreateUser {
+        username: signup.username,
+        password: signup.password,
+        email: signup.email,
+        api_key: Some(format!("{:x}", rng.gen::<i128>())),
         is_admin: Some(false),
-        ..user
-    });
+    };
+    let created_user = db.create_user(user);
 
     respond(created_user, warp::http::StatusCode::OK)
 }
 
 pub async fn user_login(
-    mut db: DBAccessManager,
-    user: UserLogin,
+    mut _db: DBAccessManager,
+    user: UserLoginReq,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     respond(Ok(user), warp::http::StatusCode::OK)
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UserSignupReq {
+    pub email: String,
+    pub username: String,
+    pub password: String,
+    pub password2: String,
+}
+
+pub struct UserSignupErrResp {
+    username: Vec<String>,
+    email: Vec<String>,
+    password: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UserLoginReq {
+    pub username: String,
+    pub password: String,
 }
