@@ -1,4 +1,4 @@
-use crate::errors::{AppError, ErrorType};
+use crate::errors::AppError;
 use crate::models::{CreateUser, User};
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, PooledConnection};
@@ -20,7 +20,7 @@ impl DBAccessManager {
         diesel::insert_into(crate::schema::users::table)
             .values(&dto)
             .get_result(&mut self.connection)
-            .map_err(|err| AppError::from_diesel_err(err, "while creating book"))
+            .map_err(|err| AppError::from_diesel_err(err, "while creating user"))
         // if error occurred map it to AppError
     }
 }

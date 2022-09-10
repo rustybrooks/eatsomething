@@ -1,6 +1,30 @@
-use std::convert::Infallible;
+use serde::Serialize;
 
-use crate::pool::OurConn;
+use pbkdf2::{
+    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Pbkdf2,
+};
+
+use crate::data_access::DBAccessManager;
+use crate::errors::AppError;
+use crate::models::CreateUser;
+use rand::Rng;
+
+fn respond<T: Serialize>(
+    result: Result<T, AppError>,
+    status: warp::http::StatusCode,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    match result {
+        Ok(response) => Ok(warp::reply::with_status(
+            warp::reply::json(&response),
+            status,
+        )),
+        Err(err) => {
+            // log::error!("Error while trying to respond: {}", err.to_string());
+            Err(warp::reject::custom(err))
+        }
+    }
+}
 
 /*
  async signup({ username, email, password, password2 }: { username: string; email: string; password: string; password2: string }) {
@@ -39,6 +63,38 @@ use crate::pool::OurConn;
  }
 */
 
-pub async fn user_signup(_pool: OurConn) -> Result<impl warp::Reply, Infallible> {
-    Ok(warp::reply::html("hi"))
+async fn encrypt_password() -> Result<String, pbkdf2::password_hash::Error> {
+    let password = b"hunter42"; // Bad password; don't actually use!
+    let salt = SaltString::generate(&mut OsRng);
+
+    // Hash password to PHC string ($pbkdf2-sha256$...)
+    Ok(Pbkdf2.hash_password(password, &salt)?.to_string())
+
+    // // Verify password against PHC string
+    // assert!(Pbkdf2.verify_password(password, &parsed_hash).is_ok());
+}
+
+async fn check_password(
+    password: String,
+    password_hash: String,
+) -> Result<bool, pbkdf2::password_hash::Error> {
+    let parsed_hash = PasswordHash::new(&password_hash)?;
+    Ok(Pbkdf2
+        .verify_password(&password.into_bytes(), &parsed_hash)
+        .is_ok())
+}
+
+pub async fn user_signup(
+    mut db: DBAccessManager,
+    user: CreateUser,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let mut rng = rand::thread_rng();
+    let api_key: i128 = rng.gen();
+    let created_user = db.create_user(CreateUser {
+        api_key: Some(format!("{api_key:x}")),
+        is_admin: Some(false),
+        ..user
+    });
+
+    respond(created_user, warp::http::StatusCode::OK)
 }
