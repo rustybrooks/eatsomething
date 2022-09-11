@@ -12,6 +12,18 @@ pub enum ErrorType {
     NotFound,
     Internal,
     BadRequest,
+    Forbidden,
+}
+
+impl ErrorType {
+    pub fn to_http_status(&self) -> warp::http::StatusCode {
+        match self {
+            ErrorType::NotFound => warp::http::StatusCode::NOT_FOUND,
+            ErrorType::Internal => warp::http::StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorType::BadRequest => warp::http::StatusCode::BAD_REQUEST,
+            ErrorType::Forbidden => warp::http::StatusCode::FORBIDDEN,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -26,11 +38,7 @@ impl AppError {
     }
 
     pub fn to_http_status(&self) -> warp::http::StatusCode {
-        match self.err_type {
-            ErrorType::NotFound => warp::http::StatusCode::NOT_FOUND,
-            ErrorType::Internal => warp::http::StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorType::BadRequest => warp::http::StatusCode::BAD_REQUEST,
-        }
+        self.err_type.to_http_status()
     }
 
     pub fn from_diesel_err(err: diesel::result::Error, context: &str) -> AppError {
@@ -46,6 +54,18 @@ impl AppError {
                 _ => ErrorType::Internal,
             },
         )
+    }
+
+    pub fn err_forbidden(message: Option<&str>) -> AppError {
+        let actual_msg = match message {
+            Some(m) => m,
+            None => "Forbidden",
+        };
+       Self::new(actual_msg, ErrorType::Forbidden)
+    }
+    
+    pub fn reject_forbidden(message: Option<&str>) -> Rejection {
+        warp::reject::custom(Self::err_forbidden(message))
     }
 }
 
@@ -95,11 +115,7 @@ impl FlexError {
     }
 
     pub fn to_http_status(&self) -> warp::http::StatusCode {
-        match self.err_type {
-            ErrorType::NotFound => warp::http::StatusCode::NOT_FOUND,
-            ErrorType::Internal => warp::http::StatusCode::INTERNAL_SERVER_ERROR,
-            ErrorType::BadRequest => warp::http::StatusCode::BAD_REQUEST,
-        }
+        self.err_type.to_http_status()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -112,6 +128,8 @@ impl Reject for FlexError {}
 pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
     let code;
     let message;
+
+    log::warn!("handle rejection");
 
     if err.is_not_found() {
         code = warp::http::StatusCode::NOT_FOUND;

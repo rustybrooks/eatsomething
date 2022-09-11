@@ -18,3 +18,7 @@ chrono = {version = "0.4.22", features = ["serde"] }
 rand = "0.8.5"
 log = "0.4.17"
 pretty_env_logger = "0.4.0"
+hmac = "0.12.1"
+sha2 = "0.10.5"
+jsonwebtoken = "8.1.1"
+lazy_static = "1.4.0"

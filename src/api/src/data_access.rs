@@ -23,4 +23,12 @@ impl DBAccessManager {
             .map_err(|err| AppError::from_diesel_err(err, "while creating user"))
         // if error occurred map it to AppError
     }
+
+    pub fn get_user(&mut self, uname: String) -> Option<User> {
+        use crate::schema::users::dsl::*;
+        match users.filter(username.eq(&uname).or(email.eq(&uname))).limit(1).first::<User>(&mut self.connection) {
+            Ok(u) => Some(u),
+            Err(_) => None,
+        }
+    }
 }

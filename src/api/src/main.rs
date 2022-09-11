@@ -1,18 +1,21 @@
 #![allow(dead_code)]
 
-#[macro_use]
 extern crate log;
-// extern crate pretty_env_logger;
+
+#[macro_use]
+extern crate lazy_static;
 
 use warp::Filter;
 
 mod data_access;
+mod env;
 mod errors;
-mod handlers;
 mod models;
 mod pool;
 mod routes;
 mod schema;
+mod user_handlers;
+mod auth;
 
 #[tokio::main]
 async fn main() {

@@ -15,6 +15,7 @@ services:
       - DATABASE_URL=postgres://wombat:1wombat2@postgres:5432/eatsomething
       - RUST_BACKTRACE=1
       - RUST_LOG=info
+      - JWT_SECRET=foofrah
     entrypoint: /srv/src/api/entrypoint.sh
     depends_on:
       - postgres
