@@ -7,15 +7,15 @@ extern crate lazy_static;
 
 use warp::Filter;
 
+mod auth;
 mod data_access;
 mod env;
 mod errors;
-mod models;
 mod pool;
 mod routes;
 mod schema;
-mod user_handlers;
-mod auth;
+mod user;
+mod restaurant;
 
 #[tokio::main]
 async fn main() {

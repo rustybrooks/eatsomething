@@ -42,3 +42,13 @@ pub fn jwt_from_header(headers: &HeaderMap<HeaderValue>) -> Result<String, AppEr
     }
     Ok(auth_header.trim_start_matches(BEARER).to_owned())
 }
+
+pub async fn authorize(headers: HeaderMap<HeaderValue>) -> Result<Claims, warp::Rejection> {
+    match jwt_from_header(&headers) {
+        Ok(jwt) => match validate_token(jwt) {
+            Ok(v) => Ok(v),
+            Err(_) => Err(AppError::reject_forbidden(None)),
+        },
+        Err(_) => Err(AppError::reject_forbidden(None)),
+    }
+}

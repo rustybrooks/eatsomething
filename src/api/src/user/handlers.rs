@@ -1,4 +1,3 @@
-use crate::auth;
 use pbkdf2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Pbkdf2,
@@ -6,9 +5,10 @@ use pbkdf2::{
 use rand::Rng;
 use serde_derive::{Deserialize, Serialize};
 
+use crate::auth;
 use crate::data_access::DBAccessManager;
 use crate::errors::{AppError, ErrorType, FlexError};
-use crate::models::CreateUser;
+use crate::user::models::CreateUser;
 
 fn respond<T: serde::Serialize>(result: Result<T, AppError>) -> Result<impl warp::Reply, warp::Rejection> {
     match result {
