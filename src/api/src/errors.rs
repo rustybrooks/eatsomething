@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::convert::Infallible;
 use std::fmt;
 
@@ -6,7 +7,7 @@ use warp::reject::Reject;
 use warp::{self};
 use warp::{Rejection, Reply};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ErrorType {
     NotFound,
     Internal,
@@ -21,10 +22,7 @@ pub struct AppError {
 
 impl AppError {
     pub fn new(message: &str, err_type: ErrorType) -> AppError {
-        AppError {
-            message: message.to_string(),
-            err_type,
-        }
+        AppError { message: message.to_string(), err_type }
     }
 
     pub fn to_http_status(&self) -> warp::http::StatusCode {
@@ -62,10 +60,54 @@ impl fmt::Display for AppError {
 impl Reject for AppError {}
 
 #[derive(Serialize)]
-struct ErrorMessage {
-    code: u16,
-    message: String,
+struct ErrorMessage<'a> {
+    status: &'a str,
+    data: String,
 }
+
+#[derive(Serialize)]
+struct FlexErrorMessage<'a> {
+    status: &'a str,
+    data: HashMap<String, Vec<String>>,
+}
+
+#[derive(Clone, Debug)]
+pub struct FlexError {
+    pub err_type: ErrorType,
+    pub data: HashMap<String, Vec<String>>,
+}
+
+impl FlexError {
+    pub fn new(err_type: ErrorType) -> FlexError {
+        let errv: HashMap<String, Vec<String>> = HashMap::new();
+        FlexError { data: errv, err_type }
+    }
+
+    pub fn add(&mut self, key: &str, error: String) -> () {
+        let val = self.data.get_mut(key);
+        match val {
+            Some(v) => v.push(error),
+            None => {
+                let v: Vec<String> = vec![error];
+                self.data.insert(key.to_string(), v);
+            }
+        };
+    }
+
+    pub fn to_http_status(&self) -> warp::http::StatusCode {
+        match self.err_type {
+            ErrorType::NotFound => warp::http::StatusCode::NOT_FOUND,
+            ErrorType::Internal => warp::http::StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorType::BadRequest => warp::http::StatusCode::BAD_REQUEST,
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.data.len() == 0
+    }
+}
+
+impl Reject for FlexError {}
 
 pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
     let code;
@@ -77,10 +119,12 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
     } else if let Some(app_err) = err.find::<AppError>() {
         code = app_err.to_http_status();
         message = app_err.message.as_str();
-    } else if err
-        .find::<warp::filters::body::BodyDeserializeError>()
-        .is_some()
-    {
+    } else if let Some(app_err) = err.find::<FlexError>() {
+        code = app_err.to_http_status();
+        let json = warp::reply::json(&FlexErrorMessage { status: "failed", data: app_err.data.clone() });
+
+        return Ok(warp::reply::with_status(json, code));
+    } else if err.find::<warp::filters::body::BodyDeserializeError>().is_some() {
         code = warp::http::StatusCode::BAD_REQUEST;
         message = "Invalid Body";
     } else if err.find::<warp::reject::MethodNotAllowed>().is_some() {
@@ -93,10 +137,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
         message = "Unhandled rejection";
     }
 
-    let json = warp::reply::json(&ErrorMessage {
-        code: code.as_u16(),
-        message: message.into(),
-    });
+    let json = warp::reply::json(&ErrorMessage { status: "failed", data: message.into() });
 
     Ok(warp::reply::with_status(json, code))
 }
