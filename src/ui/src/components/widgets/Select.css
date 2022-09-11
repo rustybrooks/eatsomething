@@ -1,0 +1,118 @@
+
+details.custom-select {
+    position: relative;
+    margin-right: .25rem;
+    margin-left: .25rem;
+}
+
+details.custom-select[open] {
+    z-index: 1;
+}
+
+summary.custom-select {
+    padding: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    background-color: #eee;
+    list-style: none;
+}
+
+summary.custom-select::-webkit-details-marker {
+    display: none;
+}
+
+details.custom-select[open] summary.custom-select:before {
+    content: '';
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    background: transparent;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+summary.custom-select:after {
+    content: '';
+    display: inline-block;
+    float: right;
+    width: .5rem;
+    height: .5rem;
+    border-bottom: 1px solid currentColor;
+    border-left: 1px solid currentColor;
+    border-bottom-left-radius: 2px;
+    transform: rotate(45deg) translate(50%, 0%);
+    transform-origin: center center;
+    transition: transform ease-in-out 100ms
+}
+
+summary.custom-select:focus {
+    outline: none;
+}
+
+details.custom-select[open] summary.custom-select:after {
+    transform: rotate(-45deg) translate(0%, 0%);
+}
+
+ul.custom-select {
+    width: 100%;
+    background: #ddd;
+    position: absolute;
+    top: calc(100% + .05rem);
+    left: 0;
+    padding: .6rem;
+    margin: 0;
+    box-sizing: border-box;
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+li.custom-select {
+    list-style: none;
+    margin: 0;
+    padding: 1rem 0;
+    border-bottom: 1px solid #ccc;
+}
+
+li.custom-select:first-child {
+    padding-top: 0;
+}
+
+li.custom-select:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+/* FAKE SELECT */
+
+summary.custom-select {
+    counter-reset: radios;
+}
+
+input.custom-select[type=radio] {
+    counter-increment: radios;
+    appearance: none;
+    display: none;
+    cursor: pointer;
+}
+
+input.custom-select[type=radio]:checked {
+    display: inline;
+}
+
+input.custom-select[type=radio]:after {
+    content: attr(title);
+    display: inline;
+    font-size: 1rem;
+}
+
+ul.custom-select {
+    counter-reset: labels;
+}
+
+label.custom-select {
+    width: 100%;
+    display: block;
+    cursor: pointer;
+}

@@ -8,14 +8,14 @@ services:
       dockerfile: Dockerfile
     container_name: eatsomething-api
     ports:
-      - 5000:5000
+      - "5000:5000"
     volumes:
       - ./src/api/src:/srv/src/api/src
       - ./src/api/Cargo.toml:/srv/src/api/Cargo.toml
     environment:
       - DATABASE_URL=postgres://wombat:1wombat2@postgres:5432/eatsomething
       - RUST_BACKTRACE=1
-      - RUST_LOG=info
+      - RUST_LOG=debug
       - JWT_SECRET=foofrah
     entrypoint: /srv/src/api/entrypoint.sh
     depends_on:
@@ -27,7 +27,7 @@ services:
       dockerfile: Dockerfile
     container_name: eatsomething-ui
     ports:
-      - 3000:3000
+      - "3000:3000"
     volumes:
       - ./src/:/srv/src/
     entrypoint: /srv/src/ui/entrypoint.sh
@@ -44,4 +44,4 @@ services:
     volumes:
       - ./data/postgres:/var/lib/postgresql/data/pgdata
     ports:
-      - 5433:5432
+      - "5433:5432"

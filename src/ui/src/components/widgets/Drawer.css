@@ -1,0 +1,47 @@
+div.drawer-parent {
+    position: fixed;
+    z-index: 1200;
+    inset: 0;
+}
+
+div.drawer-background {
+    opacity: 0;
+    transition: opacity 195ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    position: fixed;
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    justify-content: center;
+    inset: 0px;
+    background-color: rgba(0, 0, 0, 0.5);
+    -webkit-tap-highlight-color: transparent;
+    z-index: -1;
+}
+
+div.drawerbox {
+    background-color: rgb(255, 255, 255);
+    color: rgba(0, 0, 0, 0.87);
+    box-shadow: rgb(0 0 0 / 20%) 0px 8px 10px -5px, rgb(0 0 0 / 14%) 0px 16px 24px 2px, rgb(0 0 0 / 12%) 0px 6px 30px 5px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+    z-index: 1200;
+    position: fixed;
+    outline: 0px;
+    transform: none;
+}
+
+div.drawerbox.bottom {
+    height: auto;
+    inset: auto 0px 0px;
+    max-height: 100%;
+}
+
+div.drawerbox.right {
+    height: 100%;
+    top: 0px;
+    right: 0px;
+}
+

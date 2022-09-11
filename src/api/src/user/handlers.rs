@@ -60,15 +60,18 @@ pub async fn signup(mut db: DBAccessManager, signup: UserSignupReq) -> Result<im
     }
 
     let user = CreateUser {
-        username: signup.username,
+        username: signup.username.clone(),
         password: password.unwrap(),
         email: signup.email,
         api_key: Some(format!("{:x}", rng.gen::<i128>())),
         is_admin: Some(false),
     };
-    let created_user = db.create_user(user);
+    let _created_user = db.create_user(user);
 
-    respond(created_user)
+    respond(Ok(UserSignupResp {
+        status: "ok".to_string(),
+        token: auth::gen_login_token(signup.username).expect("invalid"),
+    }))
 }
 
 pub async fn login(mut db: DBAccessManager, user_login: UserLoginReq) -> Result<impl warp::Reply, warp::Rejection> {
@@ -80,7 +83,7 @@ pub async fn login(mut db: DBAccessManager, user_login: UserLoginReq) -> Result<
             if res.is_ok() && res.unwrap() {
                 return respond(Ok(UserLoginResp {
                     status: "ok".to_string(),
-                    token: crate::auth::gen_login_token(suser.username).expect("invalid"),
+                    token: auth::gen_login_token(suser.username).expect("invalid"),
                 }));
             }
         }
@@ -101,10 +104,10 @@ pub struct UserSignupReq {
     pub password2: String,
 }
 
-pub struct UserSignupErrResp {
-    username: Vec<String>,
-    email: Vec<String>,
-    password: Vec<String>,
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UserSignupResp {
+    pub status: String,
+    pub token: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
