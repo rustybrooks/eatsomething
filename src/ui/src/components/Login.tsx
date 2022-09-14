@@ -85,7 +85,8 @@ export function Login({ updateUser }: { updateUser: any }) {
       setErrors((await result.json()).details);
     } else {
       setErrors({});
-      localStorage.setItem('api-key', await result.json());
+      const foo: any = await result.json()
+      localStorage.setItem('api-key', await foo.token);
       closeDrawer();
       updateUser();
     }
