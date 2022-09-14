@@ -64,8 +64,20 @@ impl AppError {
        Self::new(actual_msg, ErrorType::Forbidden)
     }
     
+    pub fn err_not_found(message: Option<&str>) -> AppError {
+        let actual_msg = match message {
+            Some(m) => m,
+            None => "Not found",
+        };
+        Self::new(actual_msg, ErrorType::NotFound)
+    }
+    
     pub fn reject_forbidden(message: Option<&str>) -> Rejection {
         warp::reject::custom(Self::err_forbidden(message))
+    }
+    
+    pub fn reject_notfound(message: Option<&str>) -> Rejection {
+        warp::reject::custom(Self::err_not_found(message))
     }
 }
 

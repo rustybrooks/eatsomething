@@ -10,8 +10,8 @@ const BEARER: &str = "Bearer ";
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Claims {
-    username: String,
-    exp: usize,
+    pub username: String,
+    pub exp: usize,
 }
 
 pub fn gen_login_token(username: String) -> errors::Result<String> {
@@ -37,6 +37,7 @@ pub fn jwt_from_header(headers: &HeaderMap<HeaderValue>) -> Result<String, AppEr
         Ok(v) => v,
         Err(_) => return Err(AppError::err_forbidden(None)),
     };
+    log::warn!("header={header:?} auth_header={auth_header:?}");
     if !auth_header.starts_with(BEARER) {
         return Err(AppError::err_forbidden(None));
     }

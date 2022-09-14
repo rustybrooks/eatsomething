@@ -25,8 +25,9 @@ pub fn login(pool: OurPool) -> impl Filter<Extract = impl warp::Reply, Error = w
 }
 
 pub fn auth_test() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path("auth_test")
-        // .and(warp::post())
-        .and(with_auth())
-        .and_then(handlers::auth_test)
+    warp::path("auth_test").and(warp::get()).and(with_auth()).and_then(handlers::auth_test)
+}
+
+pub fn me(pool: OurPool) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+    warp::path("me").and(warp::get()).and(with_db(pool)).and(with_auth()).and_then(handlers::me)
 }

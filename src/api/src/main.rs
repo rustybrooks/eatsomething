@@ -24,7 +24,7 @@ async fn main() {
 
     let cors = warp::cors()
         .allow_any_origin()
-        .allow_header("content-type")
+        .allow_headers(vec!["content-type", "authorization"])
         .allow_methods(&[Method::GET, Method::POST]);
     let routes = routes::routes(pool::init_pool().await).recover(errors::handle_rejection).with(cors);
     warp::serve(routes).run(([0, 0, 0, 0], 5000)).await;

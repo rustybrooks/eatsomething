@@ -92,6 +92,15 @@ pub async fn login(mut db: DBAccessManager, user_login: UserLoginReq) -> Result<
     Err(AppError::reject_forbidden(None))
 }
 
+pub async fn me(mut db: DBAccessManager, claims: auth::Claims) -> Result<impl warp::Reply, warp::Rejection> {
+    log::warn!("get {claims:?}");
+    let user = db.get_user(claims.username);
+    match user {
+        Some(v) => respond(Ok(v)),
+        None => Err(AppError::reject_notfound(None)),
+    }
+}
+
 pub async fn auth_test(claims: auth::Claims) -> Result<impl warp::Reply, warp::Rejection> {
     respond(Ok(claims))
 }
