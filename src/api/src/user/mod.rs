@@ -11,5 +11,7 @@ pub fn routes(pool: OurPool) -> impl Filter<Extract = impl warp::Reply, Error = 
         routes::signup(pool.clone())
             .or(routes::login(pool.clone()))
             .or(routes::me(pool.clone()))
+            .or(routes::add_friend(pool.clone()))
+            .or(routes::friends(pool.clone())),
     )
 }

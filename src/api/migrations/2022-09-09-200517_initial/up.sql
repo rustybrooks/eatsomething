@@ -27,10 +27,10 @@ CREATE UNIQUE INDEX users_username ON users(LOWER(username));
 CREATE UNIQUE INDEX users_email ON users(LOWER(email));
 CREATE UNIQUE INDEX users_api_key ON users(LOWER(api_key));
 
-create table friends(
-    friend_id uuid primary key default gen_random_uuid(),
-    user_id_from uuid not null references users(user_id),
-    user_id_to uuid not null REFERENCES users(user_id),
+CREATE TABLE friends (
+    friend_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id_from uuid NOT NULL REFERENCES users(user_id),
+    user_id_to uuid NOT NULL REFERENCES users(user_id),
     created_date timestamp NOT NULL DEFAULT NOW(),
     updated_date timestamp NOT NULL DEFAULT NOW()
 );
@@ -39,8 +39,8 @@ CREATE TRIGGER update_friends_updated_date
     ON friends
     FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
-create index friends_user_id_from on friends(user_id_from);
-create index friends_user_id_to on friends(user_id_to);
+CREATE UNIQUE INDEX friends_user_ids ON friends(user_id_from, user_id_to);
+CREATE INDEX friends_user_id_to ON friends(user_id_to);
 
 
 CREATE TABLE restaurants (

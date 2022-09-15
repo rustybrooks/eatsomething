@@ -8,7 +8,7 @@ use serde_derive::{Deserialize, Serialize};
 use crate::auth;
 use crate::data_access::DBAccessManager;
 use crate::errors::{AppError, ErrorType, FlexError};
-use crate::user::models::{AddUser,AddFriend};
+use crate::user::models::{AddFriend, AddUser};
 
 fn respond<T: serde::Serialize>(result: Result<T, AppError>) -> Result<impl warp::Reply, warp::Rejection> {
     match result {
@@ -56,7 +56,7 @@ pub async fn signup(mut db: DBAccessManager, signup: UserSignupReq) -> Result<im
 
     let password = encrypt_password(signup.password);
     if password.is_err() {
-        return Err(warp::reject::custom(AppError::new("blorp", ErrorType::Internal)));
+        return Err(AppError::reject_fatal(None));
     }
 
     let user = AddUser {
@@ -70,23 +70,23 @@ pub async fn signup(mut db: DBAccessManager, signup: UserSignupReq) -> Result<im
 
     // FIXME automate this more
     match created_user {
-        Ok(_) => respond(Ok(UserSignupResp {
-          status: "ok".to_string(),
-          token: auth::gen_login_token(signup.username).expect("invalid"),
+        Ok(c) => respond(Ok(UserSignupResp {
+            status: "ok".to_string(),
+            token: auth::gen_login_token(c.username, c.user_id).expect("invalid"),
         })),
-        Err(_) => Err(warp::reject::custom(AppError::new("blorp", ErrorType::Internal)))
+        Err(_) => Err(AppError::reject_fatal(None)),
     }
 }
 
 pub async fn login(mut db: DBAccessManager, user_login: UserLoginReq) -> Result<impl warp::Reply, warp::Rejection> {
     if !user_login.username.is_empty() && !user_login.password.is_empty() {
-        let user = db.get_user(user_login.username);
-        if let Some(suser) = user {
+        let user = db.get_user(None, Some(&user_login.username));
+        if let Ok(suser) = user {
             let res = check_password(user_login.password, suser.password);
             if res.is_ok() && res.unwrap() {
                 return respond(Ok(UserLoginResp {
                     status: "ok".to_string(),
-                    token: auth::gen_login_token(suser.username).expect("invalid"),
+                    token: auth::gen_login_token(suser.username, suser.user_id).expect("invalid"),
                 }));
             }
         }
@@ -96,24 +96,36 @@ pub async fn login(mut db: DBAccessManager, user_login: UserLoginReq) -> Result<
 }
 
 pub async fn me(mut db: DBAccessManager, claims: auth::Claims) -> Result<impl warp::Reply, warp::Rejection> {
-    let user = db.get_user(claims.username);
+    let user = db.get_user(Some(&claims.user_id), None);
     match user {
-        Some(v) => respond(Ok(v)),
-        None => Err(AppError::reject_notfound(None)),
+        Ok(v) => respond(Ok(v)),
+        Err(_) => Err(AppError::reject_notfound(None)),
     }
 }
 
-pub async fn add_friend(mut db: DBAccessManager, add_friend: AddFriend) -> Result<impl warp::Reply, warp::Rejection> {
-    let friend = db.add_friend(add_friend);
+pub async fn add_friend(
+    mut db: DBAccessManager,
+    claims: auth::Claims,
+    add_friend: AddFriendReq,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let to_user = db.get_user(None, Some(&add_friend.username));
+    if to_user.is_err() {
+        return Err(AppError::reject_notfound(Some(format!("User '{}' not found", add_friend.username).as_str())));
+    }
+
+    let friend = db.add_friend(AddFriend { user_id_to: to_user.unwrap().user_id, user_id_from: claims.user_id });
     match friend {
         Ok(v) => respond(Ok(v)),
-        Err(_) => Err(warp::reject::custom(AppError::new("blorp", ErrorType::Internal)))
+        Err(_) => Err(AppError::reject_fatal(None)),
     }
 }
 
 pub async fn friends(mut db: DBAccessManager, claims: auth::Claims) -> Result<impl warp::Reply, warp::Rejection> {
-    let friends = db.get_friends(claims.username);
-    respond(Ok("hi"))
+    let friends = db.get_friends(claims.user_id);
+    match friends {
+        Ok(f) => respond(Ok(f)),
+        Err(_) => Err(AppError::reject_fatal(None)),
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -140,4 +152,9 @@ pub struct UserLoginReq {
 pub struct UserLoginResp {
     pub status: String,
     pub token: String,
+}
+
+#[derive(Deserialize)]
+pub struct AddFriendReq {
+    pub username: String,
 }

@@ -1,7 +1,7 @@
 use diesel::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::schema::{users, friends};
+use crate::schema::{friends, users};
 
 #[derive(Debug, Clone, Queryable, Serialize)]
 pub struct User {
@@ -42,4 +42,11 @@ pub struct AddFriend {
     pub user_id_to: uuid::Uuid,
 }
 
-
+#[derive(Debug, Clone, Serialize)]
+pub struct UserFriend {
+    pub friend_id: uuid::Uuid,
+    pub user_id_to: uuid::Uuid,
+    pub username_to: String,
+    pub created_date: chrono::NaiveDateTime,
+    pub updated_date: chrono::NaiveDateTime,
+}

@@ -11,13 +11,14 @@ const BEARER: &str = "Bearer ";
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Claims {
     pub username: String,
+    pub user_id: uuid::Uuid,
     pub exp: usize,
 }
 
-pub fn gen_login_token(username: String) -> errors::Result<String> {
+pub fn gen_login_token(username: String, user_id: uuid::Uuid) -> errors::Result<String> {
     let expiration = Utc::now().checked_add_signed(chrono::Duration::days(14)).expect("valid timestamp").timestamp();
 
-    let claims = Claims { username, exp: expiration as usize };
+    let claims = Claims { username, user_id, exp: expiration as usize };
     let header = Header::new(Algorithm::HS512);
     encode(&header, &claims, &EncodingKey::from_secret(ENV.jwt_secret.as_bytes()))
 }
@@ -37,7 +38,6 @@ pub fn jwt_from_header(headers: &HeaderMap<HeaderValue>) -> Result<String, AppEr
         Ok(v) => v,
         Err(_) => return Err(AppError::err_forbidden(None)),
     };
-    log::warn!("header={header:?} auth_header={auth_header:?}");
     if !auth_header.starts_with(BEARER) {
         return Err(AppError::err_forbidden(None));
     }

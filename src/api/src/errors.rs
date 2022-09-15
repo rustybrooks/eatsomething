@@ -57,27 +57,30 @@ impl AppError {
     }
 
     pub fn err_forbidden(message: Option<&str>) -> AppError {
-        let actual_msg = match message {
-            Some(m) => m,
-            None => "Forbidden",
-        };
+        let actual_msg = message.unwrap_or("Forbidden");
        Self::new(actual_msg, ErrorType::Forbidden)
     }
     
     pub fn err_not_found(message: Option<&str>) -> AppError {
-        let actual_msg = match message {
-            Some(m) => m,
-            None => "Not found",
-        };
+        let actual_msg = message.unwrap_or("Not found");
         Self::new(actual_msg, ErrorType::NotFound)
     }
-    
+
+    pub fn err_fatal(message: Option<&str>) -> AppError {
+        let actual_msg = message.unwrap_or("Server error");
+        Self::new(actual_msg, ErrorType::NotFound)
+    }
+
     pub fn reject_forbidden(message: Option<&str>) -> Rejection {
         warp::reject::custom(Self::err_forbidden(message))
     }
     
     pub fn reject_notfound(message: Option<&str>) -> Rejection {
         warp::reject::custom(Self::err_not_found(message))
+    }
+    
+    pub fn reject_fatal(message: Option<&str>) -> Rejection {
+        warp::reject::custom(Self::err_fatal(message))
     }
 }
 
