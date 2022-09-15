@@ -10,7 +10,6 @@ pub fn routes(pool: OurPool) -> impl Filter<Extract = impl warp::Reply, Error = 
     warp::path("user").and(
         routes::signup(pool.clone())
             .or(routes::login(pool.clone()))
-            .or(routes::auth_test())
-            .or(routes::me(pool.clone())),
+            .or(routes::me(pool.clone()))
     )
 }

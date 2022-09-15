@@ -8,7 +8,7 @@ use serde_derive::{Deserialize, Serialize};
 use crate::auth;
 use crate::data_access::DBAccessManager;
 use crate::errors::{AppError, ErrorType, FlexError};
-use crate::user::models::CreateUser;
+use crate::user::models::{AddUser,AddFriend};
 
 fn respond<T: serde::Serialize>(result: Result<T, AppError>) -> Result<impl warp::Reply, warp::Rejection> {
     match result {
@@ -59,26 +59,26 @@ pub async fn signup(mut db: DBAccessManager, signup: UserSignupReq) -> Result<im
         return Err(warp::reject::custom(AppError::new("blorp", ErrorType::Internal)));
     }
 
-    let user = CreateUser {
+    let user = AddUser {
         username: signup.username.clone(),
         password: password.unwrap(),
         email: signup.email,
         api_key: Some(format!("{:x}", rng.gen::<i128>())),
         is_admin: Some(false),
     };
-    let _created_user = db.create_user(user);
+    let created_user = db.add_user(user);
 
-    match _created_user {
+    // FIXME automate this more
+    match created_user {
         Ok(_) => respond(Ok(UserSignupResp {
           status: "ok".to_string(),
           token: auth::gen_login_token(signup.username).expect("invalid"),
         })),
         Err(_) => Err(warp::reject::custom(AppError::new("blorp", ErrorType::Internal)))
-    } 
+    }
 }
 
 pub async fn login(mut db: DBAccessManager, user_login: UserLoginReq) -> Result<impl warp::Reply, warp::Rejection> {
-    log::warn!("login {user_login:?}");
     if !user_login.username.is_empty() && !user_login.password.is_empty() {
         let user = db.get_user(user_login.username);
         if let Some(suser) = user {
@@ -96,7 +96,6 @@ pub async fn login(mut db: DBAccessManager, user_login: UserLoginReq) -> Result<
 }
 
 pub async fn me(mut db: DBAccessManager, claims: auth::Claims) -> Result<impl warp::Reply, warp::Rejection> {
-    log::warn!("get {claims:?}");
     let user = db.get_user(claims.username);
     match user {
         Some(v) => respond(Ok(v)),
@@ -104,8 +103,17 @@ pub async fn me(mut db: DBAccessManager, claims: auth::Claims) -> Result<impl wa
     }
 }
 
-pub async fn auth_test(claims: auth::Claims) -> Result<impl warp::Reply, warp::Rejection> {
-    respond(Ok(claims))
+pub async fn add_friend(mut db: DBAccessManager, add_friend: AddFriend) -> Result<impl warp::Reply, warp::Rejection> {
+    let friend = db.add_friend(add_friend);
+    match friend {
+        Ok(v) => respond(Ok(v)),
+        Err(_) => Err(warp::reject::custom(AppError::new("blorp", ErrorType::Internal)))
+    }
+}
+
+pub async fn friends(mut db: DBAccessManager, claims: auth::Claims) -> Result<impl warp::Reply, warp::Rejection> {
+    let friends = db.get_friends(claims.username);
+    respond(Ok("hi"))
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
