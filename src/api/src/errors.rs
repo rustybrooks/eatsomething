@@ -94,34 +94,34 @@ impl Reject for AppError {}
 #[derive(Serialize)]
 struct ErrorMessage<'a> {
     status: &'a str,
-    data: String,
+    details: String,
 }
 
 #[derive(Serialize)]
 struct FlexErrorMessage<'a> {
     status: &'a str,
-    data: HashMap<String, Vec<String>>,
+    details: HashMap<String, Vec<String>>,
 }
 
 #[derive(Clone, Debug)]
 pub struct FlexError {
     pub err_type: ErrorType,
-    pub data: HashMap<String, Vec<String>>,
+    pub details: HashMap<String, Vec<String>>,
 }
 
 impl FlexError {
     pub fn new(err_type: ErrorType) -> FlexError {
         let errv: HashMap<String, Vec<String>> = HashMap::new();
-        FlexError { data: errv, err_type }
+        FlexError { details: errv, err_type }
     }
 
     pub fn add(&mut self, key: &str, error: String) -> () {
-        let val = self.data.get_mut(key);
+        let val = self.details.get_mut(key);
         match val {
             Some(v) => v.push(error),
             None => {
                 let v: Vec<String> = vec![error];
-                self.data.insert(key.to_string(), v);
+                self.details.insert(key.to_string(), v);
             }
         };
     }
@@ -131,7 +131,7 @@ impl FlexError {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.data.len() == 0
+        self.details.len() == 0
     }
 }
 
@@ -151,7 +151,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
         message = app_err.message.as_str();
     } else if let Some(app_err) = err.find::<FlexError>() {
         code = app_err.to_http_status();
-        let json = warp::reply::json(&FlexErrorMessage { status: "failed", data: app_err.data.clone() });
+        let json = warp::reply::json(&FlexErrorMessage { status: "failed", details: app_err.details.clone() });
 
         return Ok(warp::reply::with_status(json, code));
     } else if err.find::<warp::filters::body::BodyDeserializeError>().is_some() {
@@ -167,7 +167,7 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
         message = "Unhandled rejection";
     }
 
-    let json = warp::reply::json(&ErrorMessage { status: "failed", data: message.into() });
+    let json = warp::reply::json(&ErrorMessage { status: "failed", details: message.into() });
 
     Ok(warp::reply::with_status(json, code))
 }

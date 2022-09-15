@@ -68,10 +68,13 @@ pub async fn signup(mut db: DBAccessManager, signup: UserSignupReq) -> Result<im
     };
     let _created_user = db.create_user(user);
 
-    respond(Ok(UserSignupResp {
-        status: "ok".to_string(),
-        token: auth::gen_login_token(signup.username).expect("invalid"),
-    }))
+    match _created_user {
+        Ok(_) => respond(Ok(UserSignupResp {
+          status: "ok".to_string(),
+          token: auth::gen_login_token(signup.username).expect("invalid"),
+        })),
+        Err(_) => Err(warp::reject::custom(AppError::new("blorp", ErrorType::Internal)))
+    } 
 }
 
 pub async fn login(mut db: DBAccessManager, user_login: UserLoginReq) -> Result<impl warp::Reply, warp::Rejection> {

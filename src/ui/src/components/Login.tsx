@@ -83,6 +83,8 @@ export function Login({ updateUser }: { updateUser: any }) {
     });
     if (result.status === 400) {
       setErrors((await result.json()).details);
+    } else if (result.status === 500) {
+        setErrors({username: 'An unexpected error occurred'});
     } else {
       setErrors({});
       const foo: any = await result.json()

@@ -7,6 +7,16 @@ pub mod sql_types {
 }
 
 diesel::table! {
+    friends (friend_id) {
+        friend_id -> Uuid,
+        user_id_from -> Uuid,
+        user_id_to -> Uuid,
+        created_date -> Timestamp,
+        updated_date -> Timestamp,
+    }
+}
+
+diesel::table! {
     recipe_ratings (restaurant_ratings_id) {
         restaurant_ratings_id -> Uuid,
         recipe_id -> Uuid,
@@ -73,6 +83,7 @@ diesel::joinable!(restaurant_ratings -> users (user_id));
 diesel::joinable!(restaurants -> users (create_user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    friends,
     recipe_ratings,
     recipes,
     restaurant_ratings,
