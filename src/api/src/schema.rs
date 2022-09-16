@@ -1,11 +1,5 @@
 // @generated automatically by Diesel CLI.
 
-pub mod sql_types {
-    #[derive(diesel::sql_types::SqlType)]
-    #[diesel(postgres_type(name = "restaurant_rating_type"))]
-    pub struct RestaurantRatingType;
-}
-
 diesel::table! {
     friends (friend_id) {
         friend_id -> Uuid,
@@ -17,10 +11,11 @@ diesel::table! {
 }
 
 diesel::table! {
-    recipe_ratings (restaurant_ratings_id) {
-        restaurant_ratings_id -> Uuid,
+    recipe_ratings (restaurant_rating_id) {
+        restaurant_rating_id -> Uuid,
         recipe_id -> Uuid,
         user_id -> Uuid,
+        rating -> Nullable<Int4>,
         created_date -> Timestamp,
         updated_date -> Timestamp,
     }
@@ -38,14 +33,12 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use super::sql_types::RestaurantRatingType;
-
     restaurant_ratings (restaurant_ratings_id) {
         restaurant_ratings_id -> Uuid,
         restaurant_id -> Uuid,
         user_id -> Uuid,
-        rating_type -> RestaurantRatingType,
+        rating_type -> Varchar,
+        rating -> Nullable<Int4>,
         created_date -> Timestamp,
         updated_date -> Timestamp,
     }

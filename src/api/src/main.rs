@@ -16,6 +16,7 @@ mod restaurant;
 mod routes;
 mod schema;
 mod user;
+mod handlers;
 
 #[tokio::main]
 async fn main() {

@@ -1,24 +1,14 @@
 use pbkdf2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, rand_core::OsRng, SaltString},
     Pbkdf2,
 };
 use rand::Rng;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::auth;
+use crate::{auth, handlers};
 use crate::data_access::DBAccessManager;
 use crate::errors::{AppError, ErrorType, FlexError};
 use crate::user::models::{AddFriend, AddUser};
-
-fn respond<T: serde::Serialize>(result: Result<T, AppError>) -> Result<impl warp::Reply, warp::Rejection> {
-    match result {
-        Ok(response) => Ok(warp::reply::with_status(warp::reply::json(&response), warp::http::StatusCode::OK)),
-        Err(err) => {
-            log::error!("Error while trying to respond: {}", err.to_string());
-            Err(warp::reject::custom(err))
-        }
-    }
-}
 
 fn encrypt_password(password: String) -> Result<String, pbkdf2::password_hash::Error> {
     let salt = SaltString::generate(&mut OsRng);
@@ -70,7 +60,7 @@ pub async fn signup(mut db: DBAccessManager, signup: UserSignupReq) -> Result<im
 
     // FIXME automate this more
     match created_user {
-        Ok(c) => respond(Ok(UserSignupResp {
+        Ok(c) => handlers::respond(Ok(UserSignupResp {
             status: "ok".to_string(),
             token: auth::gen_login_token(c.username, c.user_id).expect("invalid"),
         })),
@@ -84,7 +74,7 @@ pub async fn login(mut db: DBAccessManager, user_login: UserLoginReq) -> Result<
         if let Ok(suser) = user {
             let res = check_password(user_login.password, suser.password);
             if res.is_ok() && res.unwrap() {
-                return respond(Ok(UserLoginResp {
+                return handlers::respond(Ok(UserLoginResp {
                     status: "ok".to_string(),
                     token: auth::gen_login_token(suser.username, suser.user_id).expect("invalid"),
                 }));
@@ -98,7 +88,7 @@ pub async fn login(mut db: DBAccessManager, user_login: UserLoginReq) -> Result<
 pub async fn me(mut db: DBAccessManager, claims: auth::Claims) -> Result<impl warp::Reply, warp::Rejection> {
     let user = db.get_user(Some(&claims.user_id), None);
     match user {
-        Ok(v) => respond(Ok(v)),
+        Ok(v) => handlers::respond(Ok(v)),
         Err(_) => Err(AppError::reject_notfound(None)),
     }
 }
@@ -115,7 +105,7 @@ pub async fn add_friend(
 
     let friend = db.add_friend(AddFriend { user_id_to: to_user.unwrap().user_id, user_id_from: claims.user_id });
     match friend {
-        Ok(v) => respond(Ok(v)),
+        Ok(v) => handlers::respond(Ok(v)),
         Err(_) => Err(AppError::reject_fatal(None)),
     }
 }
@@ -123,7 +113,7 @@ pub async fn add_friend(
 pub async fn friends(mut db: DBAccessManager, claims: auth::Claims) -> Result<impl warp::Reply, warp::Rejection> {
     let friends = db.get_friends(claims.user_id);
     match friends {
-        Ok(f) => respond(Ok(f)),
+        Ok(f) => handlers::respond(Ok(f)),
         Err(_) => Err(AppError::reject_fatal(None)),
     }
 }

@@ -58,12 +58,12 @@ CREATE TRIGGER update_restaurant_updated_date
 EXECUTE PROCEDURE trigger_set_timestamp();
 CREATE INDEX restaurants_create_user_id ON restaurants(create_user_id);
 
-CREATE TYPE restaurant_rating_type AS enum ('delivery', 'pickup', 'dine-in');
 CREATE TABLE restaurant_ratings (
     restaurant_ratings_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     restaurant_id uuid NOT NULL REFERENCES restaurants(restaurant_id),
     user_id uuid NOT NULL REFERENCES users(user_id),
-    rating_type restaurant_rating_type NOT NULL,
+    rating_type varchar(20) NOT NULL,
+    rating int,
     created_date timestamp NOT NULL DEFAULT NOW(),
     updated_date timestamp NOT NULL DEFAULT NOW()
 );
@@ -92,9 +92,10 @@ EXECUTE PROCEDURE trigger_set_timestamp();
 CREATE INDEX recipes_user_id ON recipes(user_id);
 
 CREATE TABLE recipe_ratings (
-    restaurant_ratings_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    restaurant_rating_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     recipe_id uuid NOT NULL REFERENCES restaurants(restaurant_id),
     user_id uuid NOT NULL REFERENCES users(user_id),
+    rating int,
     created_date timestamp NOT NULL DEFAULT NOW(),
     updated_date timestamp NOT NULL DEFAULT NOW()
 );
