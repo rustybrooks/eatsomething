@@ -3,11 +3,12 @@ use serde_derive::{Deserialize, Serialize};
 
 use crate::schema::{restaurant_ratings, restaurants};
 
-#[derive(Debug, Clone, Queryable, Serialize)]
+#[derive(Debug, Clone, Queryable, Deserialize, Serialize)]
 pub struct Restaurant {
     pub restaurant_id: uuid::Uuid,
     pub create_user_id: uuid::Uuid,
     pub name: String,
+    pub slug: String,
     pub url: String,
     pub created_date: chrono::NaiveDateTime,
     pub updated_date: chrono::NaiveDateTime,
@@ -18,6 +19,7 @@ pub struct Restaurant {
 pub struct AddRestaurant {
     pub create_user_id: uuid::Uuid,
     pub name: String,
+    pub slug: String,
     pub url: String,
 }
 

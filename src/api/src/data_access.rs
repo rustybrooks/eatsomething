@@ -1,6 +1,7 @@
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, PooledConnection};
 
+use crate::restaurant::models::{AddRestaurant, AddRestaurantRating, Restaurant, RestaurantRating};
 use crate::schema::*;
 use crate::user::models::{AddFriend, AddUser, Friend, User, UserFriend};
 
@@ -67,5 +68,36 @@ impl DBAccessManager {
             .load::<(Friend, User)>(&mut self.connection)?;
 
         Ok(res.iter().map(Self::create_user_friend).collect())
+    }
+
+    pub fn add_restaurant(&mut self, dto: AddRestaurant) -> Result<Restaurant, diesel::result::Error> {
+        diesel::insert_into(restaurants::table).values(&dto).get_result(&mut self.connection)
+    }
+
+    pub fn get_restaurant(&mut self, slug: String) -> Result<Restaurant, diesel::result::Error> {
+        return restaurants::table.filter(restaurants::dsl::slug.eq(slug)).limit(1).first(&mut self.connection);
+    }
+
+    pub fn get_restaurants(&mut self) -> Result<Vec<Restaurant>, diesel::result::Error> {
+        return restaurants::table.load(&mut self.connection);
+    }
+
+    pub fn add_restaurant_rating(&mut self, dto: AddRestaurantRating) -> Result<RestaurantRating, diesel::result::Error> {
+        diesel::insert_into(restaurant_ratings::table).values(&dto).get_result(&mut self.connection)
+    }
+
+    pub fn get_restaurant_ratings(&mut self) -> Result<Vec<RestaurantRating>, diesel::result::Error> {
+        return restaurant_ratings::table.load(&mut self.connection);
+    }
+
+    // FIXME dupes!
+    pub fn create_slug(name: &String) -> String {
+        let mut slug = name.to_lowercase();
+        let dash_chars = vec![" ", "'", "\"", "!", "@"];
+        for char in dash_chars {
+            slug = slug.replace(char, "-");
+        }
+
+        slug
     }
 }

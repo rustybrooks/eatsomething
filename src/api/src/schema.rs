@@ -15,7 +15,7 @@ diesel::table! {
         restaurant_rating_id -> Uuid,
         recipe_id -> Uuid,
         user_id -> Uuid,
-        rating -> Nullable<Int4>,
+        rating -> Int4,
         created_date -> Timestamp,
         updated_date -> Timestamp,
     }
@@ -25,8 +25,9 @@ diesel::table! {
     recipes (recipe_id) {
         recipe_id -> Uuid,
         user_id -> Uuid,
-        name -> Nullable<Varchar>,
-        details -> Nullable<Text>,
+        name -> Varchar,
+        slug -> Varchar,
+        details -> Text,
         created_date -> Timestamp,
         updated_date -> Timestamp,
     }
@@ -38,7 +39,7 @@ diesel::table! {
         restaurant_id -> Uuid,
         user_id -> Uuid,
         rating_type -> Varchar,
-        rating -> Nullable<Int4>,
+        rating -> Int4,
         created_date -> Timestamp,
         updated_date -> Timestamp,
     }
@@ -48,8 +49,9 @@ diesel::table! {
     restaurants (restaurant_id) {
         restaurant_id -> Uuid,
         create_user_id -> Uuid,
-        name -> Nullable<Varchar>,
-        url -> Nullable<Text>,
+        name -> Varchar,
+        slug -> Varchar,
+        url -> Text,
         created_date -> Timestamp,
         updated_date -> Timestamp,
     }
