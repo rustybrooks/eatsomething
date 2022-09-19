@@ -1,4 +1,4 @@
-.idea/**
+.idea/
 data/
 **/.DS_Store
 src/api/target

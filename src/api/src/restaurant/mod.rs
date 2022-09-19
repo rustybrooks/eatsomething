@@ -33,9 +33,9 @@ pub fn rate(pool: OurPool) -> impl Filter<Extract = impl warp::Reply, Error = wa
         .and(routes::with_db(pool))
         .and(with_auth())
         .and(routes::with_json_body::<RateReq>())
-        .and_then(handlers::list)
+        .and_then(handlers::rate)
 }
 
 pub fn ratings(pool: OurPool) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    warp::path("ratings").and(warp::post()).and(routes::with_db(pool)).and_then(handlers::list)
+    warp::path("ratings").and(warp::post()).and(routes::with_db(pool)).and_then(handlers::ratings)
 }

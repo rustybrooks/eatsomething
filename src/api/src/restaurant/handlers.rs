@@ -16,14 +16,14 @@ pub async fn add(mut db: DBAccessManager, claims: Claims, restaurant: AddRestaur
         url: restaurant.url,
     }) {
         Ok(v) => respond(Ok(v)),
-        Err(_) => Err(AppError::reject_fatal(Some("Error saving restaurant"))),
+        Err(_) => Err(AppError::reject_fatal(None))
     }
 }
 
 pub async fn list(mut db: DBAccessManager) -> Result<impl warp::Reply, warp::Rejection> {
     match db.get_restaurants() {
         Ok(v) => respond(Ok(v)),
-        Err(_) => Err(AppError::reject_fatal(Some("Error saving restaurant"))),
+        Err(_) => Err(AppError::reject_fatal(None))
     }
 }
 
@@ -47,14 +47,14 @@ pub async fn rate(mut db: DBAccessManager, claims: Claims, rate: RateReq) -> Res
         rating: rate.rating,
     }) {
         Ok(v) => respond(Ok(v)),
-        Err(_) => Err(AppError::reject_fatal(Some("Error saving restaurant"))),
+        Err(_) => Err(AppError::reject_fatal(None))
     }
 }
 
 pub async fn ratings(mut db: DBAccessManager) -> Result<impl warp::Reply, warp::Rejection> {
     match db.get_restaurant_ratings() {
         Ok(v) => respond(Ok(v)),
-        Err(_) => Err(AppError::reject_fatal(Some("Error saving restaurant"))),
+        Err(_) => Err(AppError::reject_fatal(None))
     }
 }
 
